@@ -45,8 +45,8 @@ const Register = () => {
         onChange={handleChange}
       />
       <select name="role" onChange={handleChange}>
-        <option value="USER">User</option>
-        <option value="ADMIN">Admin</option>
+        <option value="ROLE_USER">User</option>
+        <option value="ROLE_ADMIN">Admin</option>
       </select>
       <button type="submit">Register</button>
       <p>{message}</p>
