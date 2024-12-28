@@ -59,8 +59,14 @@ public class AuthController {
 	    // Convert role into a GrantedAuthority and pass it to generateToken
 	    Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
 
-	    String token = jwtUtil.generateToken(user.getUsername(), authorities);
-	    return ResponseEntity.ok(new AuthResponse(token, "User registered successfully"));
+		String token = jwtUtil.generateToken(
+				user.getId(),
+				user.getUsername(),
+				user.getEmail(),
+				authorities
+		);
+
+		return ResponseEntity.ok(new AuthResponse(token, "User registered successfully"));
 	}
 
 
@@ -89,9 +95,9 @@ public class AuthController {
             // After authentication, get the roles from the authenticated user
             String username = request.getUsername();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-
+             User user = userRepository.findByUsername(username).orElse(null);
             // Generate the JWT token with the username and roles
-            String token = jwtUtil.generateToken(username, authorities);
+            String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail(), authorities);
 
             return ResponseEntity.ok(new AuthResponse(token, "Login successful"));
         } catch (Exception e) {
