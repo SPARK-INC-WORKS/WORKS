@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,12 +15,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.auth.dto.CreateOrder;
+import com.example.auth.model.ContactForm;
+// import com.example.auth.dto.CreateOrder;
 import com.example.auth.model.FoodItem;
 import com.example.auth.model.Order;
+import com.example.auth.model.OrderItem;
+import com.example.auth.model.Reservation;
+import com.example.auth.model.User;
 import com.example.auth.repository.FoodItemRepository;
 import com.example.auth.repository.OrderRepository;
+import com.example.auth.repository.UserRepository;
+import com.example.auth.service.ContactFormService;
 import com.example.auth.service.OrderService;
+import com.example.auth.service.ReservationService;
 
 @RestController
 @RequestMapping("/user")
@@ -32,6 +40,16 @@ public class UserController {
 
 		 @Autowired
     private OrderService orderService;
+
+	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
+	private ReservationService reservationService;
+	
+	@Autowired
+	 private ContactFormService contactFormService;
+
 	  @PreAuthorize("hasRole('ROLE_USER')")
 	 @GetMapping("/available")
 	    public List<FoodItem> getAvailableFoodItems() {
@@ -39,26 +57,6 @@ public class UserController {
 	                .stream()
 	                .filter(FoodItem::getAvailable)
 	                .toList();
-	    }
-
-	 // Place an order
-	 	@PreAuthorize("hasRole('ROLE_USER')")
-	    @PostMapping
-	    public ResponseEntity<?> placeOrder(@RequestBody CreateOrder order) {
-	        Optional<Order> orderExist = foodItemRepository.findById(order.getFoodItemId()).map(foodItem -> {
-	            if (foodItem.getAvailable()) {
-	                Order newOrder = new Order(order.getFoodItemId(), "Preparing",order.getUserId());
-	                Order result=orderRepository.save(newOrder);
-	                return  result;
-	            }
-	            return null;
-	        });
-
-	        if (orderExist.isPresent()) {
-	            return ResponseEntity.status(201).body("Order placed successfully");
-	        } else {
-	            return ResponseEntity.status(404).body("Food item not found or out of stock");
-	        }
 	    }
 
 	    // View order history
@@ -82,5 +80,19 @@ public class UserController {
 	            return ResponseEntity.status(404).body("Order not found");
 	        }
 	    }
+
+		 @PostMapping("/reserve-table")
+    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
+        Reservation savedReservation = reservationService.saveReservation(reservation);
+        return ResponseEntity.ok(savedReservation);
+    }
+
+	  @PostMapping("/contact-form")
+    public ResponseEntity<ContactForm> submitContactForm(@RequestBody ContactForm contactForm) {
+        ContactForm savedContactForm = contactFormService.saveContactForm(contactForm);
+        return ResponseEntity.ok(savedContactForm);
+    }
+
+   
 }
 

@@ -1,44 +1,34 @@
 package com.example.auth.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name="orders")
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "user_id", insertable = false, updatable = false)
-    private Long userId;
-    private Long foodItemId;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id") // Add this to create a foreign key reference to User
+    private User user;  // This is the missing user relationship field
+
     private String status; // Preparing, Ready, Cancelled
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> foodItems;
 
-     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    // Constructors, Getters, Setters
+
     public Order() {
     }
 
-    public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public Order(Long foodItemId, String status,Long userId) {
-        this.foodItemId = foodItemId;
+    public Order(User user, String status, List<OrderItem> foodItems) {
+        this.user = user;
         this.status = status;
-        this.userId=userId;
+        this.foodItems = foodItems;
     }
 
     public Long getId() {
@@ -49,12 +39,12 @@ public class Order {
         this.id = id;
     }
 
-    public Long getFoodItemId() {
-        return foodItemId;
+    public User getUser() {  // Use 'user' instead of 'userId'
+        return user;
     }
 
-    public void setFoodItemId(Long foodItemId) {
-        this.foodItemId = foodItemId;
+    public void setUser(User user) {  // Set the user directly
+        this.user = user;
     }
 
     public String getStatus() {
@@ -64,5 +54,12 @@ public class Order {
     public void setStatus(String status) {
         this.status = status;
     }
-}
 
+    public List<OrderItem> getFoodItems() {
+        return foodItems;
+    }
+
+    public void setFoodItems(List<OrderItem> foodItems) {
+        this.foodItems = foodItems;
+    }
+}

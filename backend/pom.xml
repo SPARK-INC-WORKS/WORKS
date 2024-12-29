@@ -69,6 +69,12 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.15.0</version>
+</dependency>
+
 		<!-- JWT Dependencies -->
 <dependency>
     <groupId>io.jsonwebtoken</groupId>
@@ -86,7 +92,9 @@
     <artifactId>jjwt-jackson</artifactId>
     <version>0.11.5</version>
     <scope>runtime</scope>
-</dependency>	</dependencies>
+</dependency>	
+                
+              </dependencies>
 
 	<build>
 		<plugins>

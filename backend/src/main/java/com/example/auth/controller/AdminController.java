@@ -15,10 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.auth.model.ContactForm;
 import com.example.auth.model.FoodItem;
 import com.example.auth.model.Order;
+import com.example.auth.model.Reservation;
 import com.example.auth.repository.FoodItemRepository;
 import com.example.auth.repository.OrderRepository;
+import com.example.auth.service.ContactFormService;
+import com.example.auth.service.ReservationService;
 
 @RestController
 @RequestMapping("/admin")
@@ -29,6 +33,14 @@ public class AdminController {
 	
 	 @Autowired
 	    private FoodItemRepository foodItemRepository;
+
+        
+	@Autowired
+	private ReservationService reservationService;
+
+    @Autowired
+	 private ContactFormService contactFormService;
+
 
 	 @GetMapping("/dashboard")
 	    @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -83,6 +95,19 @@ public class AdminController {
             foodItem.setAvailable(updatedFoodItem.getAvailable());
             return foodItemRepository.save(foodItem);
         }).orElseThrow(() -> new RuntimeException("Food item not found"));
+    }
+
+     @GetMapping("/get-all-reservations")
+    public ResponseEntity<List<Reservation>> getAllReservations() {
+        List<Reservation> reservations = reservationService.getAllReservations();
+        return ResponseEntity.ok(reservations);
+    }
+
+
+     @GetMapping("/get-contact-forms")
+    public ResponseEntity<List<ContactForm>> getAllContactForms() {
+        List<ContactForm> contactForms = contactFormService.getAllContactForms();
+        return ResponseEntity.ok(contactForms);
     }
 }
 
