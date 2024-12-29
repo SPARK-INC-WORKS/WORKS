@@ -1,35 +1,56 @@
-import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import type { CartItem } from '../../types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  CheckoutFormData,
+  checkoutSchema,
+} from '../../validations/checkout.schema';
+import { UserData } from '../../contexts/AuthContext';
 
 interface CheckoutFormProps {
   items: CartItem[];
+  userData: UserData | null;
   total: number;
-  onSubmit: (address: string, notes: string) => void;
 }
 
-export function CheckoutForm({ items, total, onSubmit }: CheckoutFormProps) {
-  const [address, setAddress] = useState('');
-  const [notes, setNotes] = useState('');
+export function CheckoutForm({ items, total, userData }: CheckoutFormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof checkoutSchema>>({
+    resolver: zodResolver(checkoutSchema),
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(address, notes);
+  const onSubmitForm = (data: CheckoutFormData) => {
+    console.log('Form submitted:', {
+      address: data.address,
+      phone: data.phone,
+      items,
+      total,
+      userId: userData?.id,
+      username: userData?.username,
+      email: userData?.email,
+    });
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Checkout</h2>
+    <div className="max-w-2xl p-6 mx-auto">
+      <h2 className="mb-6 text-2xl font-bold">Checkout</h2>
 
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold mb-3">Order Summary</h3>
+      <div className="p-4 mb-6 rounded-lg bg-gray-50">
+        <h3 className="mb-3 font-semibold">Order Summary</h3>
         <div className="space-y-2">
           {items.map((item) => (
             <div key={item.id} className="flex justify-between">
-              <span>{item.quantity}x {item.name}</span>
+              <span>
+                {item.quantity}x {item.name}
+              </span>
               <span>${(item.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
-          <div className="border-t pt-2 mt-2 font-semibold">
+          <div className="pt-2 mt-2 font-semibold border-t">
             <div className="flex justify-between">
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
@@ -38,31 +59,44 @@ export function CheckoutForm({ items, total, onSubmit }: CheckoutFormProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Delivery Address</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Delivery Address
+          </label>
           <textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+            {...register('address')}
+            className={`block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500 ${
+              errors.address ? 'border-red-500' : ''
+            }`}
             rows={3}
-            required
           />
+          {errors.address && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.address.message}
+            </p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Special Instructions</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-            rows={2}
+          <label className="block text-sm font-medium text-gray-700">
+            Phone number
+          </label>
+          <input
+            type="tel"
+            {...register('phone')}
+            className={`block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500 ${
+              errors.phone ? 'border-red-500' : ''
+            }`}
           />
+          {errors.phone && (
+            <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+          )}
         </div>
 
         <button
           type="submit"
-          className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+          className="w-full py-3 font-semibold text-white transition-colors bg-orange-500 rounded-lg hover:bg-orange-600"
         >
           Place Order
         </button>

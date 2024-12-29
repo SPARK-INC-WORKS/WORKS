@@ -24,7 +24,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const {
     register: loginRegister,
     handleSubmit: handleLoginSubmit,
-    formState: { errors: loginErrors },
+    formState: { errors: loginErrors, isSubmitting: isLoginSubmitting },
     reset: resetLoginForm,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -33,7 +33,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const {
     register: signupRegister,
     handleSubmit: handleSignupSubmit,
-    formState: { errors: signupErrors },
+    formState: { errors: signupErrors, isSubmitting: isSignupSubmitting },
     reset: resetSignupForm,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -102,8 +102,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 className="w-full px-4 py-2 text-white transition-colors bg-orange-500 rounded-md hover:bg-orange-600"
+                disabled={isLoginSubmitting}
               >
-                Login
+                {isLoginSubmitting ? 'Logging in...' : 'Login'}
               </button>
             </div>
           </form>
@@ -132,8 +133,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 className="w-full px-4 py-2 text-white transition-colors bg-orange-500 rounded-md hover:bg-orange-600"
+                disabled={isSignupSubmitting}
               >
-                Sign Up
+                {isSignupSubmitting ? 'Signing up...' : 'Sign Up'}
               </button>
             </div>
           </form>
