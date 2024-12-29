@@ -33,11 +33,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
       http
           .csrf(csrf -> csrf.disable())
+
           .authorizeHttpRequests(auth -> auth
-          		.requestMatchers("api/auth/**").permitAll()
-          		.requestMatchers("/admin/**").hasRole("ADMIN")
-          		.requestMatchers("/user/**").hasRole("USER")
-          		
+          		.requestMatchers("/api/**").permitAll()
+          		.requestMatchers("/api/admin/**").hasRole("ADMIN")
+          		.requestMatchers("/api/user/**").hasRole("USER")
+
           		//                .requestMatchers("/api/food/**", "/api/orders/**").permitAll()
               .anyRequest().authenticated()
           )
