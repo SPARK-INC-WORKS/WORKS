@@ -8,6 +8,7 @@ import React, {
 import { getToken, removeToken } from '../service/authService';
 import { jwtDecode } from 'jwt-decode'; // Correctly imported as default export
 import { Order } from '../types';
+import { useCart } from './CartContext';
 
 // Define the structure of the JWT payload
 interface DecodedToken {
@@ -18,7 +19,7 @@ interface DecodedToken {
 }
 
 // Define the structure of the user data
-interface UserData {
+export interface UserData {
   username: string;
   roles: string[];
   email: string;
@@ -31,7 +32,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   userData: UserData | null;
   login: (token: string) => void;
-  handleLogout: () => void;
+  logout: () => void;
 }
 
 // Create the context
@@ -63,7 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log(decodedToken);
       } catch (error) {
         console.error('Invalid token:', error);
-        handleLogout();
+        logout();
       }
     }
   }, []);
@@ -85,16 +86,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const handleLogout = (): void => {
+  const logout = (): void => {
     removeToken();
     setIsAuthenticated(false);
     setUserData(null);
   };
 
   return (
-    <AuthContext.Provider
-      value={{ isAuthenticated, userData, login, handleLogout }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, userData, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
