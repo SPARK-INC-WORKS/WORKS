@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -13,7 +13,7 @@ interface NavbarProps {
 
 export function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { items } = useCart();
 
   const cartItemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -31,20 +31,20 @@ export function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
   ];
 
   return (
-    <nav className="bg-white shadow-md fixed w-full top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 z-50 w-full bg-white shadow-md">
+      <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center text-orange-500">
-              <UtensilsCrossed className="h-8 w-8" />
-              <span className="ml-2 text-xl font-semibold text-gray-900 hidden sm:block">
+              <UtensilsCrossed className="w-8 h-8" />
+              <span className="hidden ml-2 text-xl font-semibold text-gray-900 sm:block">
                 Gourmet Haven
               </span>
             </NavLink>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="items-center hidden gap-1 md:flex">
             {navItems.map(({ path, label }) => (
               <NavLink
                 key={path}
@@ -61,7 +61,7 @@ export function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
               </NavLink>
             ))}
 
-            {user ? (
+            {isAuthenticated ? (
               authItems.map(({ path, label }) => (
                 <NavLink
                   key={path}
@@ -80,7 +80,7 @@ export function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
             ) : (
               <button
                 onClick={onAuthClick}
-                className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-orange-500 hover:bg-orange-50"
+                className="px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-orange-500 hover:bg-orange-50"
               >
                 Login
               </button>
@@ -97,7 +97,7 @@ export function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
               onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               navItems={navItems}
               authItems={authItems}
-              isAuthenticated={!!user}
+              isAuthenticated={!!isAuthenticated}
               onAuthClick={onAuthClick}
             />
           </div>

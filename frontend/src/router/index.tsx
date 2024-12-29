@@ -16,32 +16,44 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Menu />
+        element: <Menu />,
       },
       {
         path: 'about',
-        element: <About />
+        element: <About />,
       },
       {
         path: 'contact',
-        element: <Contact />
+        element: <Contact />,
       },
       {
         path: 'reservations',
-        element: <Reservations />
+        element: <Reservations />,
       },
       {
         path: 'orders',
-        element: <ProtectedRoute><Orders /></ProtectedRoute>
+        element: (
+          <ProtectedRoute>
+            <Orders />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'profile',
-        element: <ProtectedRoute><Profile /></ProtectedRoute>
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'checkout',
-        element: <ProtectedRoute><Checkout /></ProtectedRoute>
-      }
-    ]
-  }
+        element: (
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
 ]);

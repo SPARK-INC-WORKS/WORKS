@@ -10,11 +10,11 @@ interface OrderContextType {
 const OrderContext = createContext<OrderContextType | null>(null);
 
 export function OrderProvider({ children }: { children: React.ReactNode }) {
-  const { user, login } = useAuth();
+  const { userData, isAuthenticated, login } = useAuth();
   const { items, total, clearCart } = useCart();
 
   const createOrder = (address: string, notes: string) => {
-    if (!user) {
+    if (!isAuthenticated) {
       throw new Error('User must be logged in to create an order');
     }
 
@@ -25,11 +25,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       status: 'pending',
       createdAt: new Date().toISOString(),
       address,
-      notes
+      notes,
     };
 
     // In a real app, this would make an API call
-    login(user.email, ''); // Refresh user data with new order
+    // login(userData?.username, ''); // Refresh userData data with new order
     clearCart();
   };
 

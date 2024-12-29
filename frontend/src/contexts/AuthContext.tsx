@@ -1,46 +1,106 @@
-import React, { createContext, useContext, useState } from 'react';
-import type { User } from '../types';
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  ReactNode,
+  useContext,
+} from 'react';
+import { getToken, removeToken } from '../service/authService';
+import { jwtDecode } from 'jwt-decode'; // Correctly imported as default export
+import { Order } from '../types';
 
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => void;
-  signup: (email: string, password: string, name: string) => void;
-  logout: () => void;
+// Define the structure of the JWT payload
+interface DecodedToken {
+  sub: string;
+  roles: string[];
+  email: string;
+  userId: string;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+// Define the structure of the user data
+interface UserData {
+  username: string;
+  roles: string[];
+  email: string;
+  id: string;
+  orders: Order[];
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+// Define the AuthContext value type
+interface AuthContextValue {
+  isAuthenticated: boolean;
+  userData: UserData | null;
+  login: (token: string) => void;
+  handleLogout: () => void;
+}
 
-  const login = (email: string, password: string) => {
-    setUser({
-      id: '1',
-      email,
-      name: 'John Doe',
-      orders: []
-    });
+// Create the context
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// Define the props for the AuthProvider component
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  // Initialize authentication state
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      try {
+        const decodedToken = jwtDecode<DecodedToken>(token);
+        setIsAuthenticated(true);
+        setUserData({
+          username: decodedToken.sub,
+          roles: decodedToken.roles,
+          email: decodedToken.email,
+          id: decodedToken.userId,
+          orders: [],
+        });
+        console.log(decodedToken);
+      } catch (error) {
+        console.error('Invalid token:', error);
+        handleLogout();
+      }
+    }
+  }, []);
+
+  const login = (token: string): void => {
+    try {
+      localStorage.setItem('token', token);
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      setIsAuthenticated(true);
+      setUserData({
+        username: decodedToken.sub,
+        roles: decodedToken.roles,
+        email: decodedToken.email,
+        id: decodedToken.userId,
+        orders: [],
+      });
+    } catch (error) {
+      console.error('Error during login:', error);
+    }
   };
 
-  const signup = (email: string, password: string, name: string) => {
-    setUser({
-      id: '1',
-      email,
-      name,
-      orders: []
-    });
-  };
-
-  const logout = () => {
-    setUser(null);
+  const handleLogout = (): void => {
+    removeToken();
+    setIsAuthenticated(false);
+    setUserData(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, userData, login, handleLogout }}
+    >
       {children}
     </AuthContext.Provider>
   );
-}
+};
+
+export default AuthContext;
 
 export function useAuth() {
   const context = useContext(AuthContext);

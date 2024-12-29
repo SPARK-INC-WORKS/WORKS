@@ -3,25 +3,25 @@ import { OrderCard } from '../components/orders/OrderCard';
 import { useAuth } from '../contexts/AuthContext';
 
 export function Orders() {
-  const { user } = useAuth();
-  const orders = user?.orders || [];
+  const { userData } = useAuth();
+  const orders = userData?.orders || [];
 
-  const activeOrders = orders.filter(order => 
+  const activeOrders = orders.filter((order) =>
     ['pending', 'confirmed', 'preparing'].includes(order.status)
   );
-  const pastOrders = orders.filter(order => 
+  const pastOrders = orders.filter((order) =>
     ['ready', 'delivered'].includes(order.status)
   );
 
   return (
     <div className="pt-24 pb-16">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Orders</h1>
+      <h1 className="mb-8 text-3xl font-bold text-gray-900">Your Orders</h1>
 
       {activeOrders.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Active Orders</h2>
+          <h2 className="mb-4 text-xl font-semibold">Active Orders</h2>
           <div className="grid gap-6 md:grid-cols-2">
-            {activeOrders.map(order => (
+            {activeOrders.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
           </div>
@@ -30,9 +30,9 @@ export function Orders() {
 
       {pastOrders.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Past Orders</h2>
+          <h2 className="mb-4 text-xl font-semibold">Past Orders</h2>
           <div className="grid gap-6 md:grid-cols-2">
-            {pastOrders.map(order => (
+            {pastOrders.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
           </div>

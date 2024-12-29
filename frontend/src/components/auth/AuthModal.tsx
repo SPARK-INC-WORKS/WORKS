@@ -1,25 +1,31 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, signupSchema } from '../../validations/auth.schema';
 import { FormInput } from '../forms/FormInput';
-import type { LoginFormData, SignupFormData } from '../../validations/auth.schema';
+import type {
+  LoginFormData,
+  SignupFormData,
+} from '../../validations/auth.schema';
+import { toast } from 'sonner';
+import { login, register } from '../../service/authService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (email: string, password: string) => void;
-  onSignup: (email: string, password: string, name: string) => void;
 }
 
-export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const { login: setLoginState } = useAuth();
 
   const {
     register: loginRegister,
     handleSubmit: handleLoginSubmit,
     formState: { errors: loginErrors },
+    reset: resetLoginForm,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
@@ -28,34 +34,63 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
     register: signupRegister,
     handleSubmit: handleSignupSubmit,
     formState: { errors: signupErrors },
+    reset: resetSignupForm,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
   });
 
   if (!isOpen) return null;
 
+  const loginHandler = async (values: LoginFormData) => {
+    try {
+      const response = await login(values);
+      toast.success(response.message);
+      setLoginState(response.token);
+      resetLoginForm();
+      onClose();
+    } catch (error) {
+      toast.error(String(error));
+    }
+  };
+
+  const signupHandler = async (values: SignupFormData) => {
+    try {
+      const response = await register({
+        username: values.username,
+        email: values.email,
+        password: values.password,
+      });
+      setLoginState(response.token);
+      toast.success(response.message);
+      resetSignupForm();
+      onClose();
+    } catch (error) {
+      toast.error(String(error));
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="relative w-full max-w-md p-6 bg-white rounded-lg">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+          className="absolute text-gray-500 right-4 top-4 hover:text-gray-700"
         >
-          <X className="h-5 w-5" />
+          <X className="w-5 h-5" />
         </button>
-        
-        <h2 className="text-2xl font-bold mb-6">
+
+        <h2 className="mb-6 text-2xl font-bold">
           {isLoginMode ? 'Welcome Back' : 'Create Account'}
         </h2>
 
         {isLoginMode ? (
-          <form onSubmit={handleLoginSubmit((data) => onLogin(data.email, data.password))}>
+          <form onSubmit={handleLoginSubmit(loginHandler)}>
             <div className="space-y-4">
               <FormInput
-                label="Email"
-                name="email"
+                label="Username"
+                name="username"
                 register={loginRegister}
-                error={loginErrors.email?.message}
+                error={loginErrors.username?.message}
               />
               <FormInput
                 label="Password"
@@ -66,20 +101,20 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
               />
               <button
                 type="submit"
-                className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors"
+                className="w-full px-4 py-2 text-white transition-colors bg-orange-500 rounded-md hover:bg-orange-600"
               >
                 Login
               </button>
             </div>
           </form>
         ) : (
-          <form onSubmit={handleSignupSubmit((data) => onSignup(data.email, data.password, data.name))}>
+          <form onSubmit={handleSignupSubmit(signupHandler)}>
             <div className="space-y-4">
               <FormInput
-                label="Name"
-                name="name"
+                label="Username"
+                name="username"
                 register={signupRegister}
-                error={signupErrors.name?.message}
+                error={signupErrors.username?.message}
               />
               <FormInput
                 label="Email"
@@ -96,7 +131,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
               />
               <button
                 type="submit"
-                className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors"
+                className="w-full px-4 py-2 text-white transition-colors bg-orange-500 rounded-md hover:bg-orange-600"
               >
                 Sign Up
               </button>
@@ -108,7 +143,9 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
           onClick={() => setIsLoginMode(!isLoginMode)}
           className="mt-4 text-sm text-orange-500 hover:text-orange-600"
         >
-          {isLoginMode ? 'Need an account? Sign up' : 'Already have an account? Login'}
+          {isLoginMode
+            ? 'Need an account? Sign up'
+            : 'Already have an account? Login'}
         </button>
       </div>
     </div>
