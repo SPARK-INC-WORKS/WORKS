@@ -1,10 +1,10 @@
-import React from 'react';
 import { OrderCard } from '../components/orders/OrderCard';
 import { useAuth } from '../contexts/AuthContext';
 
 export function Orders() {
   const { userData } = useAuth();
   const orders = userData?.orders || [];
+  console.log(orders);
 
   const activeOrders = orders.filter((order) =>
     ['pending', 'confirmed', 'preparing'].includes(order.status)

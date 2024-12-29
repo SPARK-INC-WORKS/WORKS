@@ -3,7 +3,9 @@ package com.example.auth.controller;
 import com.example.auth.dto.AuthRequest;
 import com.example.auth.dto.AuthResponse;
 import com.example.auth.dto.RegisterRequest;
+import com.example.auth.model.Order;
 import com.example.auth.model.User;
+import com.example.auth.repository.OrderRepository;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,8 @@ public class AuthController {
     private  PasswordEncoder passwordEncoder;
 	@Autowired
     private  JwtUtil jwtUtil;
+	@Autowired
+	private OrderRepository orderRepository;
 
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
@@ -59,10 +63,13 @@ public class AuthController {
 	    // Convert role into a GrantedAuthority and pass it to generateToken
 	    Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
 
+		List<Order> userOrders = orderRepository.findByUserId(user.getId());
+
 		String token = jwtUtil.generateToken(
 				user.getId(),
 				user.getUsername(),
 				user.getEmail(),
+				userOrders,
 				authorities
 		);
 
@@ -96,8 +103,9 @@ public class AuthController {
             String username = request.getUsername();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
              User user = userRepository.findByUsername(username).orElse(null);
+			List<Order> userOrders = orderRepository.findByUserId(user.getId());
             // Generate the JWT token with the username and roles
-            String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail(), authorities);
+            String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail(),userOrders, authorities);
 
             return ResponseEntity.ok(new AuthResponse(token, "Login successful"));
         } catch (Exception e) {

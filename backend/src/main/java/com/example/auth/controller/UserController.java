@@ -1,28 +1,27 @@
 package com.example.auth.controller;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import com.example.auth.model.ContactForm;
+import com.example.auth.dto.ApiResponse;
+import com.example.auth.dto.UserDetails;
+import com.example.auth.model.*;
 import com.example.auth.repository.ReservationRepository;
+import com.example.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.web.bind.annotation.*;
 
-import com.example.auth.model.FoodItem;
-import com.example.auth.model.Order;
-import com.example.auth.model.Reservation;
 import com.example.auth.repository.FoodItemRepository;
 import com.example.auth.repository.OrderRepository;
 import com.example.auth.service.ContactFormService;
-
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -31,12 +30,28 @@ public class UserController {
 	private FoodItemRepository foodItemRepository;
 	@Autowired
 	private OrderRepository orderRepository;
+	@Autowired
+	private UserRepository userRepository;
 
 	@Autowired
 	private ReservationRepository reservationRepository;
 	@Autowired
 	 private ContactFormService contactFormService;
+     @GetMapping("/{userId}")
+	 @PreAuthorize("hasRole('ROLE_USER')")
+	 public ResponseEntity<?> getUserDetails(@PathVariable Long userId) {
+		 User user = userRepository.findById(userId).orElse(null);
+		 if (user == null) {
+			 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<String>("User not found", null));
+		 }
+		 List<Order> userOrders = orderRepository.findByUserId(userId);
+		 List<String> roles =new ArrayList<>();
+		 roles.add(user.getRole());
+       return ResponseEntity.ok(new UserDetails(user.getUsername(),user.getEmail(),roles,user.getId(),userOrders));
 
+
+
+	 }
 	  @PreAuthorize("hasRole('ROLE_USER')")
 	  @GetMapping("/get-food-items")
 	  public List<FoodItem> getAllFoodItems() {
@@ -61,15 +76,15 @@ public class UserController {
     }
 	@PreAuthorize("hasRole('ROLE_USER')")
 	@PostMapping("/place-order")
-	public ResponseEntity<Order> placeOrder(@RequestBody Order order)  {
+	public ResponseEntity<?> placeOrder(@RequestBody Order order)  {
 		// Set the initial status of the order
-		order.setStatus("Preparing");
+		order.setStatus("preparing");
 
 		// Save the order to the database
 		Order savedOrder = orderRepository.save(order);
 
 		// Return a response with the created order
-		return ResponseEntity.ok(savedOrder);
+		return ResponseEntity.ok(new ApiResponse<Order>("Order placed successfully", savedOrder));
 	}
 
 
@@ -89,7 +104,7 @@ public class UserController {
 		Optional<Order> order = orderRepository.findById(id);
 
 		if (order.isPresent()) {
-			order.get().setStatus("Cancelled");
+			order.get().setStatus("cancelled");
 			Order updatedOrder = orderRepository.save(order.get());
 			return ResponseEntity.ok(updatedOrder);
 		} else {

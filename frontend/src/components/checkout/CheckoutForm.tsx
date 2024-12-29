@@ -6,7 +6,11 @@ import {
   CheckoutFormData,
   checkoutSchema,
 } from '../../validations/checkout.schema';
-import { UserData } from '../../contexts/AuthContext';
+import { useAuth, UserData } from '../../contexts/AuthContext';
+import { placeOrder } from '../../service/userService';
+import { toast } from 'sonner';
+import { useCart } from '../../contexts/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 interface CheckoutFormProps {
   items: CartItem[];
@@ -15,24 +19,36 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ items, total, userData }: CheckoutFormProps) {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
+    reset,
   } = useForm<z.infer<typeof checkoutSchema>>({
     resolver: zodResolver(checkoutSchema),
   });
-
-  const onSubmitForm = (data: CheckoutFormData) => {
-    console.log('Form submitted:', {
-      address: data.address,
-      phone: data.phone,
-      items,
-      total,
-      userId: userData?.id,
-      username: userData?.username,
-      email: userData?.email,
-    });
+  const { clearCart } = useCart();
+  const { updateUser } = useAuth();
+  const onSubmitForm = async (data: CheckoutFormData) => {
+    try {
+      const response = await placeOrder({
+        userId: userData?.id || '',
+        username: userData?.username || '',
+        email: userData?.email || '',
+        address: data.address,
+        phone: data.phone,
+        foodItemList: items,
+        totalPrice: total,
+      });
+      updateUser(userData?.id || '');
+      clearCart();
+      reset();
+      navigate('/orders');
+      toast.success(response.message);
+    } catch (error) {
+      toast.error(String(error));
+    }
   };
 
   return (
@@ -96,9 +112,12 @@ export function CheckoutForm({ items, total, userData }: CheckoutFormProps) {
 
         <button
           type="submit"
-          className="w-full py-3 font-semibold text-white transition-colors bg-orange-500 rounded-lg hover:bg-orange-600"
+          disabled={isSubmitting}
+          className={`w-full py-3 font-semibold text-white transition-colors bg-orange-500 rounded-lg hover:bg-orange-600 ${
+            isSubmitting && 'opacity-50 cursor-not-allowed'
+          }`}
         >
-          Place Order
+          {isSubmitting ? 'Placing order...' : 'Place Order'}
         </button>
       </form>
     </div>

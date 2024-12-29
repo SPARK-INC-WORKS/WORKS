@@ -40,17 +40,17 @@ export function ProfileSection() {
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-gray-50">
             <span className="text-gray-500">Total Orders</span>
-            <p className="text-2xl font-semibold">{userData.orders.length}</p>
+            {/* <p className="text-2xl font-semibold">{userData.orders.length}</p> */}
           </div>
           <div className="p-4 rounded-lg bg-gray-50">
             <span className="text-gray-500">Active Orders</span>
-            <p className="text-2xl font-semibold">
+            {/* <p className="text-2xl font-semibold">
               {
                 userData.orders.filter((order) =>
                   ['pending', 'confirmed', 'preparing'].includes(order.status)
                 ).length
               }
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

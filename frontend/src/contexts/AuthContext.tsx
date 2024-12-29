@@ -7,15 +7,27 @@ import React, {
 } from 'react';
 import { getToken, removeToken } from '../service/authService';
 import { jwtDecode } from 'jwt-decode'; // Correctly imported as default export
-import { Order } from '../types';
-import { useCart } from './CartContext';
+import { CartItem, Order } from '../types';
+import { getUserDetails } from '../service/userService';
 
+export interface OrderItem {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  address: string;
+  phone: string;
+  foodItemList: CartItem[];
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered';
+}
 // Define the structure of the JWT payload
 interface DecodedToken {
   sub: string;
   roles: string[];
   email: string;
   userId: string;
+  orders: OrderItem[];
 }
 
 // Define the structure of the user data
@@ -24,7 +36,7 @@ export interface UserData {
   roles: string[];
   email: string;
   id: string;
-  orders: Order[];
+  orders: OrderItem[];
 }
 
 // Define the AuthContext value type
@@ -33,6 +45,7 @@ interface AuthContextValue {
   userData: UserData | null;
   login: (token: string) => void;
   logout: () => void;
+  updateUser: (userId: string) => void;
 }
 
 // Create the context
@@ -59,9 +72,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           roles: decodedToken.roles,
           email: decodedToken.email,
           id: decodedToken.userId,
-          orders: [],
+          orders: decodedToken.orders,
         });
-        console.log(decodedToken);
+        updateUser(decodedToken.userId);
       } catch (error) {
         console.error('Invalid token:', error);
         logout();
@@ -79,13 +92,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         roles: decodedToken.roles,
         email: decodedToken.email,
         id: decodedToken.userId,
-        orders: [],
+        orders: decodedToken.orders,
       });
     } catch (error) {
       console.error('Error during login:', error);
     }
   };
-
+  const updateUser = async (userId: string) => {
+    const updatedUserData = await getUserDetails(userId);
+    setUserData(updatedUserData);
+  };
   const logout = (): void => {
     removeToken();
     setIsAuthenticated(false);
@@ -93,7 +109,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userData, login, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, userData, login, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

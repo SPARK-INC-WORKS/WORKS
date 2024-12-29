@@ -11,24 +11,36 @@ public class FoodItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    private String description;
+    private String category;
     private Double price;
-    private Boolean available;
+    private String image;
 
     public FoodItem() {
     }
 
-    public FoodItem(String name, Double price, Boolean available) {
+    public FoodItem(String name, String description, String category, Double price, String image) {
         this.name = name;
+        this.description = description;
+        this.category = category;
         this.price = price;
-        this.available = available;
+        this.image = image;
     }
 
-    public Long getId() {
-        return id;
+    public String getCategory() {
+        return category;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getName() {
@@ -47,12 +59,20 @@ public class FoodItem {
         this.price = price;
     }
 
-    public Boolean getAvailable() {
-        return available;
+    public String getImage() {
+        return image;
     }
 
-    public void setAvailable(Boolean available) {
-        this.available = available;
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
 

@@ -1,6 +1,7 @@
 // Updated JwtUtil.java
 package com.example.auth.security;
 
+import com.example.auth.model.Order;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,9 +10,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -36,13 +35,14 @@ public class JwtUtil {
 //                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
 //                .compact();
 //    }
-public String generateToken(long userId, String username, String email, Collection<? extends GrantedAuthority> authorities) {
+public String generateToken(long userId, String username, String email, List<Order> orders, Collection<? extends GrantedAuthority> authorities) {
     // Create claims and set the subject
     Claims claims = Jwts.claims().setSubject(username);
 
     // Add additional claims
     claims.put("userId", userId);
     claims.put("email", email);
+    claims.put("orders",orders );
     claims.put("roles", authorities.stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.toList()));  // Convert authorities to a list of strings

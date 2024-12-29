@@ -1,5 +1,6 @@
 package com.example.auth.model;
 
+import com.example.auth.dto.OrderFoodItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
@@ -24,12 +25,12 @@ public class Order {
     private String foodItemsJson;
 
     @Transient
-    private List<FoodItem> foodItemList;
+    private List<OrderFoodItem> foodItemList;
 
     // Constructors
     public Order() {}
 
-    public Order(Long userId, String username, Double totalPrice, String email, String status, List<FoodItem> foodItemList) {
+    public Order(Long userId, String username, Double totalPrice, String email, String status, List<OrderFoodItem> foodItemList) {
         this.userId = userId;
         this.username = username;
         this.totalPrice = totalPrice;
@@ -87,14 +88,14 @@ public class Order {
         this.status = status;
     }
 
-    public List<FoodItem> getFoodItemList() {
+    public List<OrderFoodItem> getFoodItemList() {
         if (foodItemList == null && foodItemsJson != null) {
             this.foodItemList = convertJsonToFoodItemList(foodItemsJson);
         }
         return foodItemList;
     }
 
-    public void setFoodItemList(List<FoodItem> foodItemList) {
+    public void setFoodItemList(List<OrderFoodItem> foodItemList) {
         this.foodItemList = foodItemList;
         this.foodItemsJson = convertFoodItemListToJson(foodItemList);
     }
@@ -109,7 +110,7 @@ public class Order {
     }
 
     // Utility methods for JSON conversion
-    private String convertFoodItemListToJson(List<FoodItem> foodItemList) {
+    private String convertFoodItemListToJson(List<OrderFoodItem> foodItemList) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.writeValueAsString(foodItemList);
@@ -120,10 +121,10 @@ public class Order {
         }
     }
 
-    private List<FoodItem> convertJsonToFoodItemList(String json) {
+    private List<OrderFoodItem> convertJsonToFoodItemList(String json) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue(json, mapper.getTypeFactory().constructCollectionType(List.class, FoodItem.class));
+            return mapper.readValue(json, mapper.getTypeFactory().constructCollectionType(List.class, OrderFoodItem.class));
         } catch (IOException e) {
             // Handle exception
             e.printStackTrace();
