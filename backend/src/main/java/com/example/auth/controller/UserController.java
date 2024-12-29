@@ -19,6 +19,7 @@ import com.example.auth.model.FoodItem;
 import com.example.auth.model.Order;
 import com.example.auth.repository.FoodItemRepository;
 import com.example.auth.repository.OrderRepository;
+import com.example.auth.service.OrderService;
 
 @RestController
 @RequestMapping("/user")
@@ -28,6 +29,9 @@ public class UserController {
 
 	  @Autowired
 	    private OrderRepository orderRepository;
+
+		 @Autowired
+    private OrderService orderService;
 	  @PreAuthorize("hasRole('ROLE_USER')")
 	 @GetMapping("/available")
 	    public List<FoodItem> getAvailableFoodItems() {
@@ -59,11 +63,10 @@ public class UserController {
 
 	    // View order history
 	 	@PreAuthorize("hasRole('ROLE_USER')")
-	    @GetMapping("/order-history")
-	    public ResponseEntity<List<Order>> viewOrderHistory() {
-	        List<Order> orderHistory = orderRepository.findAll();
-	        return ResponseEntity.ok(orderHistory);
-	    }
+	    @GetMapping("/{userId}")
+    public List<Order> getOrderHistoryByUserId(@PathVariable Long userId) {
+        return orderService.getUserOrderHistory(userId);
+    }
 
 	    // Cancel order
 	 	@PreAuthorize("hasRole('ROLE_USER')")
