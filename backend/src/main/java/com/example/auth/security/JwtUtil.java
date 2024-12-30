@@ -35,14 +35,13 @@ public class JwtUtil {
 //                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
 //                .compact();
 //    }
-public String generateToken(long userId, String username, String email, List<Order> orders, Collection<? extends GrantedAuthority> authorities) {
+public String generateToken(long userId, String username, String email, Collection<? extends GrantedAuthority> authorities) {
     // Create claims and set the subject
     Claims claims = Jwts.claims().setSubject(username);
 
     // Add additional claims
     claims.put("userId", userId);
     claims.put("email", email);
-    claims.put("orders",orders );
     claims.put("roles", authorities.stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.toList()));  // Convert authorities to a list of strings

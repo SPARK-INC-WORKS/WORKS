@@ -27,7 +27,6 @@ interface DecodedToken {
   roles: string[];
   email: string;
   userId: string;
-  orders: OrderItem[];
 }
 
 // Define the structure of the user data
@@ -43,7 +42,7 @@ export interface UserData {
 interface AuthContextValue {
   isAuthenticated: boolean;
   userData: UserData | null;
-  login: (token: string) => void;
+  login: (token: string, orders: OrderItem[]) => void;
   logout: () => void;
   updateUser: (userId: string) => void;
 }
@@ -72,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           roles: decodedToken.roles,
           email: decodedToken.email,
           id: decodedToken.userId,
-          orders: decodedToken.orders,
+          orders: [],
         });
         updateUser(decodedToken.userId);
       } catch (error) {
@@ -82,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const login = (token: string): void => {
+  const login = (token: string, orders: OrderItem[]): void => {
     try {
       localStorage.setItem('token', token);
       const decodedToken = jwtDecode<DecodedToken>(token);
@@ -92,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         roles: decodedToken.roles,
         email: decodedToken.email,
         id: decodedToken.userId,
-        orders: decodedToken.orders,
+        orders,
       });
     } catch (error) {
       console.error('Error during login:', error);

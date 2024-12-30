@@ -6,24 +6,45 @@ import { contactSchema } from '../validations/contact.schema';
 import { FormInput } from '../components/forms/FormInput';
 import { FormTextarea } from '../components/forms/FormTextarea';
 import type { ContactFormData } from '../validations/contact.schema';
+import { useAuth } from '../contexts/AuthContext';
+import { contactForm } from '../service/userService';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export function Contact() {
+  const { userData, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
   });
 
-  const onSubmit = (data: ContactFormData) => {
-    console.log('Form submitted:', data);
+  const onSubmit = async (data: ContactFormData) => {
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to contact us.');
+      // navigate('/');
+    }
+    try {
+      const response = await contactForm({
+        ...data,
+        userId: userData?.id || '',
+      });
+      toast.success(response.message);
+      reset();
+      // navigate('/');
+    } catch (error) {
+      toast.error(String(error));
+    }
   };
 
   return (
     <div className="pt-24 pb-16">
-      <div className="max-w-2xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+      <div className="max-w-2xl px-4 mx-auto">
+        <h1 className="mb-8 text-4xl font-bold text-center text-gray-900">
           Contact Us
         </h1>
 
@@ -57,14 +78,15 @@ export function Contact() {
 
           <button
             type="submit"
-            className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+            className="w-full py-3 font-semibold text-white transition-colors bg-orange-500 rounded-lg hover:bg-orange-600"
+            disabled={isSubmitting}
           >
-            Send Message
+            {isSubmitting ? 'Loading...' : 'Send Message'}
           </button>
         </form>
 
-        <div className="mt-12 bg-gray-50 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Other Ways to Reach Us</h2>
+        <div className="p-6 mt-12 rounded-lg bg-gray-50">
+          <h2 className="mb-4 text-xl font-semibold">Other Ways to Reach Us</h2>
           <div className="space-y-4 text-gray-600">
             <p>Phone: (555) 123-4567</p>
             <p>Email: info@gourmethaven.com</p>

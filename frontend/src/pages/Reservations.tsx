@@ -1,4 +1,3 @@
-import React from 'react';
 import { Calendar, Clock, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,18 +5,40 @@ import { reservationSchema } from '../validations/reservation.schema';
 import { FormInput } from '../components/forms/FormInput';
 import { FormSelect } from '../components/forms/FormSelect';
 import type { ReservationFormData } from '../validations/reservation.schema';
+import { useAuth } from '../contexts/AuthContext';
+import { createReservation } from '../service/userService';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export function Reservations() {
+  const navigate = useNavigate();
+  const { userData, isAuthenticated } = useAuth();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
+    reset,
   } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
   });
 
-  const onSubmit = (data: ReservationFormData) => {
-    console.log('Reservation submitted:', data);
+  const onSubmit = async (data: ReservationFormData) => {
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to make a reservation.');
+      // navigate('/');
+    }
+    try {
+      const response = await createReservation({
+        ...data,
+        userId: userData?.id || '',
+      });
+      console.log(response);
+      toast.success(response.message);
+      reset();
+      // navigate('/');
+    } catch (error) {
+      toast.error(String(error));
+    }
   };
 
   const timeOptions = [
@@ -48,13 +69,13 @@ export function Reservations() {
 
   return (
     <div className="pt-24 pb-16">
-      <div className="max-w-2xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+      <div className="max-w-2xl px-4 mx-auto">
+        <h1 className="mb-8 text-4xl font-bold text-center text-gray-900">
           Make a Reservation
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormInput
               label="Date"
               name="date"
@@ -93,14 +114,15 @@ export function Reservations() {
 
           <button
             type="submit"
-            className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+            className="w-full py-3 font-semibold text-white transition-colors bg-orange-500 rounded-lg hover:bg-orange-600"
+            disabled={isSubmitting}
           >
-            Reserve Table
+            {isSubmitting ? 'Loading...' : 'Reserve Table'}
           </button>
         </form>
 
-        <div className="mt-12 bg-gray-50 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Reservation Policy</h2>
+        <div className="p-6 mt-12 rounded-lg bg-gray-50">
+          <h2 className="mb-4 text-xl font-semibold">Reservation Policy</h2>
           <ul className="space-y-2 text-gray-600">
             <li>• Reservations can be made up to 30 days in advance</li>
             <li>• Please arrive within 15 minutes of your reservation time</li>

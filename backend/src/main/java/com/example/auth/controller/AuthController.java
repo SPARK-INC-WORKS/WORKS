@@ -3,6 +3,7 @@ package com.example.auth.controller;
 import com.example.auth.dto.AuthRequest;
 import com.example.auth.dto.AuthResponse;
 import com.example.auth.dto.RegisterRequest;
+import com.example.auth.dto.TokenAndOrders;
 import com.example.auth.model.Order;
 import com.example.auth.model.User;
 import com.example.auth.repository.OrderRepository;
@@ -69,11 +70,12 @@ public class AuthController {
 				user.getId(),
 				user.getUsername(),
 				user.getEmail(),
-				userOrders,
+//				userOrders,
 				authorities
 		);
 
-		return ResponseEntity.ok(new AuthResponse(token, "User registered successfully"));
+//		return ResponseEntity.ok(new AuthResponse(token, "User registered successfully"));
+		return ResponseEntity.ok(new TokenAndOrders(token, userOrders, "User registered successfully"));
 	}
 
 
@@ -105,9 +107,10 @@ public class AuthController {
              User user = userRepository.findByUsername(username).orElse(null);
 			List<Order> userOrders = orderRepository.findByUserId(user.getId());
             // Generate the JWT token with the username and roles
-            String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail(),userOrders, authorities);
+            String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail(), authorities);
 
-            return ResponseEntity.ok(new AuthResponse(token, "Login successful"));
+//            return ResponseEntity.ok(new AuthResponse(token, "Login successful"));
+			return ResponseEntity.ok(new TokenAndOrders(token, userOrders, "Login successful"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new AuthResponse(null, "Invalid username or password"));
         }

@@ -12,6 +12,7 @@ public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long userId;
     private String date;
     private String guests;
     private String occasion;
@@ -56,5 +57,13 @@ public class Reservation {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

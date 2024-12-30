@@ -45,7 +45,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       const response = await login(values);
       toast.success(response.message);
-      setLoginState(response.token);
+      setLoginState(response.token, response.orders);
       resetLoginForm();
       onClose();
     } catch (error) {
@@ -60,7 +60,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         email: values.email,
         password: values.password,
       });
-      setLoginState(response.token);
+      setLoginState(response.token, response.orders);
       toast.success(response.message);
       resetSignupForm();
       onClose();

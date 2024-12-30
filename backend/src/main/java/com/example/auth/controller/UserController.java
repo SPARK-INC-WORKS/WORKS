@@ -9,8 +9,7 @@ import java.util.stream.Collectors;
 import com.example.auth.dto.ApiResponse;
 import com.example.auth.dto.UserDetails;
 import com.example.auth.model.*;
-import com.example.auth.repository.ReservationRepository;
-import com.example.auth.repository.UserRepository;
+import com.example.auth.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.auth.repository.FoodItemRepository;
-import com.example.auth.repository.OrderRepository;
 import com.example.auth.service.ContactFormService;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -36,6 +33,8 @@ public class UserController {
 	@Autowired
 	private ReservationRepository reservationRepository;
 	@Autowired
+	private ContactFormRepository contactFormRepository;
+	@Autowired
 	 private ContactFormService contactFormService;
      @GetMapping("/{userId}")
 	 @PreAuthorize("hasRole('ROLE_USER')")
@@ -49,30 +48,27 @@ public class UserController {
 		 roles.add(user.getRole());
        return ResponseEntity.ok(new UserDetails(user.getUsername(),user.getEmail(),roles,user.getId(),userOrders));
 
-
-
 	 }
 	  @PreAuthorize("hasRole('ROLE_USER')")
 	  @GetMapping("/get-food-items")
-	  public List<FoodItem> getAllFoodItems() {
-		  return foodItemRepository.findAll();
+	  public ResponseEntity<?> getAllFoodItems() {
+		  return ResponseEntity.ok(new ApiResponse<List<FoodItem>>("Food items retrieved successfully", foodItemRepository.findAll()));
 	  }
 	@PreAuthorize("hasRole('ROLE_USER')")
 	@PostMapping("/create-reservation")
-	public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
+	public ResponseEntity<?> createReservation(@RequestBody Reservation reservation) {
 		// Save the reservation to the database
 		Reservation savedReservation = reservationRepository.save(reservation);
-
 		// Return a response with the created reservation
-		return ResponseEntity.ok(savedReservation);
+		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<Reservation>("Reservation created successfully", savedReservation));
 	}
 
 
 	@PreAuthorize("hasRole('ROLE_USER')")
 	  @PostMapping("/contact-form")
-    public ResponseEntity<ContactForm> submitContactForm(@RequestBody ContactForm contactForm) {
-        ContactForm savedContactForm = contactFormService.saveContactForm(contactForm);
-        return ResponseEntity.ok(savedContactForm);
+    public ResponseEntity<?> submitContactForm(@RequestBody ContactForm contactForm) {
+        ContactForm savedContactForm = contactFormRepository.save(contactForm);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<ContactForm>("Contact form submitted successfully", savedContactForm));
     }
 	@PreAuthorize("hasRole('ROLE_USER')")
 	@PostMapping("/place-order")
@@ -84,18 +80,20 @@ public class UserController {
 		Order savedOrder = orderRepository.save(order);
 
 		// Return a response with the created order
-		return ResponseEntity.ok(new ApiResponse<Order>("Order placed successfully", savedOrder));
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponse<Order>("Order placed successfully", savedOrder));
+
 	}
 
 
 	@PreAuthorize("hasRole('ROLE_USER')")
 	@GetMapping("/get-orders/{userId}")
-	public ResponseEntity<List<Order>> getOrdersByUserId(@PathVariable Long userId) {
+	public ResponseEntity<?> getOrdersByUserId(@PathVariable Long userId) {
 		// Retrieve orders for the specified user
 		List<Order> userOrders = orderRepository.findByUserId(userId);
 
 		// Return the list of orders
-		return ResponseEntity.ok().body(userOrders);
+		return ResponseEntity.ok(new ApiResponse<List<Order>>("Orders retrieved successfully", userOrders));
 	}
 
 	@PreAuthorize("hasRole('ROLE_USER')")
@@ -106,9 +104,9 @@ public class UserController {
 		if (order.isPresent()) {
 			order.get().setStatus("cancelled");
 			Order updatedOrder = orderRepository.save(order.get());
-			return ResponseEntity.ok(updatedOrder);
+			return ResponseEntity.ok(new ApiResponse<Order>("Order cancelled successfully", updatedOrder));
 		} else {
-			return ResponseEntity.status(404).body("Order not found");
+			return ResponseEntity.status(404).body(new ApiResponse<String>("Order not found", null));
 		}
 	}
 
